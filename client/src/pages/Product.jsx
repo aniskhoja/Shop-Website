@@ -5,6 +5,12 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import Newsletter from "../components/Newsletter";
 import { mobile } from "../responsive";
+import { useState, useEffect } from 'react';
+import axios from "axios";
+import { useParams } from 'react-router-dom';
+import { addProduct } from "../redux/cartRedux";
+import { useDispatch } from "react-redux";
+
 
 const Container = styled.div``;
 
@@ -116,49 +122,81 @@ const Button = styled.button`
 `;
 
 const Product = () => {
+  const params = useParams()
+  const { id } = params
+  
+  const [product, setProduct] = useState({});
+  const [quantity, setQuantity] = useState(1)
+  const [colors, setColors] = useState("")
+  const [sizes, setSizes] = useState("")
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/api/products/find/${id}`);
+        setProduct(res.data)
+      } catch (err) {
+        
+      }
+    }
+    getProducts()
+  }, [id])
+  // const cat = useLocation().pathname.split('/')[2];
+  const handleQuantity = (action) => {
+    if (action === "dec") {
+      if( quantity > 1)
+      setQuantity(quantity - 1)
+    }
+      if (action === "inc") setQuantity(quantity + 1)
+  }
+
+  const handleAddCartBtn = () => {
+    dispatch(addProduct({ product, quantity}))
+  }
+  
+  const {_id, img, title, price, desc, color, size } = product
   return (
     <Container>
       <Navbar />
       <Announcement />
       <Wrapper>
         <ImgContainer>
-          <Image src="https://i.ibb.co/S6qMxwr/jean.jpg" />
+          <Image src={img}/>
         </ImgContainer>
         <InfoContainer>
-          <Title>Denim Jumpsuit</Title>
+          <Title>{title}</Title>
           <Desc>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
-            venenatis, dolor in finibus malesuada, lectus ipsum porta nunc, at
-            iaculis arcu nisi sed mauris. Nulla fermentum vestibulum ex, eget
-            tristique tortor pretium ut. Curabitur elit justo, consequat id
-            condimentum ac, volutpat ornare.
+            {desc}
           </Desc>
-          <Price>$ 20</Price>
+          <Price>{price}</Price>
           <FilterContainer>
             <Filter>
               <FilterTitle>Color</FilterTitle>
-              <FilterColor color="black" />
-              <FilterColor color="darkblue" />
-              <FilterColor color="gray" />
+              
+              {color?.map(item => <FilterColor key={_id} color={item} onClick={() => setColors(item)} /> )}
+             
+              
             </Filter>
             <Filter>
               <FilterTitle>Size</FilterTitle>
-              <FilterSize>
-                <FilterSizeOption>XS</FilterSizeOption>
-                <FilterSizeOption>S</FilterSizeOption>
-                <FilterSizeOption>M</FilterSizeOption>
-                <FilterSizeOption>L</FilterSizeOption>
-                <FilterSizeOption>XL</FilterSizeOption>
+              <FilterSize onChange={(e) => setSizes(e.target.value)}>
+                {size?.map((item, index) => <FilterSizeOption key={_id + index} >{item}</FilterSizeOption> )}
+                
+                
               </FilterSize>
             </Filter>
           </FilterContainer>
           <AddContainer>
             <AmountContainer>
-              <Remove />
-              <Amount>1</Amount>
-              <Add />
+                <Remove onClick={() => handleQuantity("dec")} />
+
+              <Amount>{quantity}</Amount>
+
+              <Add onClick={() => handleQuantity("inc")} />
+
             </AmountContainer>
-            <Button>ADD TO CART</Button>
+            <Button onClick={handleAddCartBtn}>ADD TO CART</Button>
           </AddContainer>
         </InfoContainer>
       </Wrapper>
