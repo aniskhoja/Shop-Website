@@ -152,7 +152,7 @@ const Product = () => {
   }
 
   const handleAddCartBtn = () => {
-    dispatch(addProduct({ product, quantity}))
+    dispatch(addProduct({ ...product, quantity, color, size }))
   }
   
   const {_id, img, title, price, desc, color, size } = product
